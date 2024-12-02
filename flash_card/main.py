@@ -1,3 +1,6 @@
+# Flash_Card app taken from online course content. Using Swedish to English content. 
+
+
 from tkinter import *
 import pandas
 from PIL import Image, ImageTk

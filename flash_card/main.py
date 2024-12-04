@@ -1,4 +1,4 @@
-# Flash_Card app taken from online course content. Using Swedish to English content. 
+# Flash_Card app taken from online course content. Using Swedish to English content. Personal touches here and there. 
 
 
 from tkinter import *
@@ -6,28 +6,37 @@ import pandas
 from PIL import Image, ImageTk
 
 BACKGROUND_COLOR = "#B1DDC6"
-canvas_width = 700
-canvas_height = 500
+canvas_width = 350# 700
+canvas_height = 250# 500
+num_words = 2 # Total of words to learn today.
 
 
 def select_next_card():
     global checking, next_word
     checking = False
-    while True:
-        next_word = data.sample()
-        if next_word.iloc[0]["num_rights"] < 3:
-            break
-    canvas.itemconfigure(word_translated_text, state='hidden')
-    next_word_target_lang = next_word.iat[0, 0]
-    next_word_base_lang = next_word.iat[0, 1]
-    canvas.itemconfigure(word_translated_text, text=next_word_base_lang)
-    canvas.itemconfigure(word_text, text=next_word_target_lang)
-    canvas.itemconfigure(language_text, text=target_lang)
-    canvas.itemconfigure(flash_card, image=card_front_img)
-    wrong_button["state"] = "disabled"
-    right_button["state"] = "disabled"
-    flip_button["state"] = "normal"
-    canvas.update()
+    if all(x >= 3 for x in data["num_rights"]):
+        print("game over")
+        canvas.itemconfigure(word_translated_text, text="Game Over")
+        canvas.itemconfigure(word_text, text="Well done!")
+        canvas.itemconfigure(progress_text, text=f"{total_cards}/{total_cards}")
+    else:
+        while True:
+            next_word = data.sample()
+            if next_word.iloc[0]["num_rights"] < 3:
+                break
+        canvas.itemconfigure(word_translated_text, state='hidden')
+        next_word_target_lang = next_word.iat[0, 0]
+        next_word_base_lang = next_word.iat[0, 1]
+        canvas.itemconfigure(word_translated_text, text=next_word_base_lang)
+        canvas.itemconfigure(word_text, text=next_word_target_lang)
+        canvas.itemconfigure(language_text, text=target_lang)
+        canvas.itemconfigure(flash_card, image=card_front_img)
+        cards_to_learn = len(data[data["num_rights"] < 3])
+        canvas.itemconfigure(progress_text, text=f"{total_cards - cards_to_learn}/{total_cards}")
+        wrong_button["state"] = "disabled"
+        right_button["state"] = "disabled"
+        flip_button["state"] = "normal"
+        canvas.update()
 
 
 def turn_over():
@@ -103,7 +112,8 @@ progress_text = canvas.create_text(canvas_width*8/9, canvas_height*8/9, text="",
 
 #-------- Reading the language file ---------#
 # Reading the csv file
-data = pandas.read_csv("data/Swedish_Words.csv")
+data_all = pandas.read_csv("data/Swedish_Words.csv")
+data = data_all[0:num_words]
 target_lang = data.keys().tolist()[0]
 base_lang = data.keys().tolist()[1]
 try:
@@ -114,7 +124,7 @@ except Exception as exemption_message:
 
 total_cards = len(data)
 cards_to_learn = len(data[data["num_rights"] < 3])
-canvas.itemconfigure(progress_text, text=f"{cards_to_learn}/{total_cards}")
+canvas.itemconfigure(progress_text, text=f"{total_cards - cards_to_learn}/{total_cards}")
 select_next_card()
 
 
